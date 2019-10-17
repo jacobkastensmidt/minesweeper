@@ -1,12 +1,13 @@
 import React from 'react';
 import './App.css';
 
-import Tile from './Board/Tile';
+import Board from './Board/Board';
 
 function App() {
+  const boardWidth = 10;
   return (
     <div className="App">
-      <Tile />
+      <Board boardWidth={boardWidth} />
     </div>
   );
 }

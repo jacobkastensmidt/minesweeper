@@ -1,0 +1,10 @@
+.Board {
+    display: flex;
+    justify-content: center;
+}
+
+.BoardGrid {
+    display: grid;
+    width: 70vw;
+    height: 70vw;
+}
