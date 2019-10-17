@@ -9,7 +9,7 @@ const symbols = {
     blank: null
 };
 
-class Tile extends Component {
+export default class Tile extends Component {
     state = {
         isRevealed: false,
         isBomb: true,
@@ -45,6 +45,10 @@ class Tile extends Component {
     }
 
     render() {
+        const style = {
+            position: 'absolute',
+            'font-size': '1.5em'
+        }
         return (
             <div
                 className={`Tile${(this.state.isRevealed) ? ' depressed' : ''}`}
@@ -53,11 +57,9 @@ class Tile extends Component {
             >
                 {this.state.symbol && ((this.state.isFlagged && !this.state.isRevealed) ||
                     (this.state.isBomb && this.state.isRevealed)) &&
-                    <FontAwesomeIcon icon={this.state.symbol} />
+                    <FontAwesomeIcon icon={this.state.symbol} style={style} />
                 }
             </div>
         );
     }
 }
-
-export default Tile;
