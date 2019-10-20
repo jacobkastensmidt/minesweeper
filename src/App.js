@@ -4,10 +4,10 @@ import './App.css';
 import Board from './Board/Board';
 
 function App() {
-  const boardWidth = 10;
+  const width = 5;
   return (
     <div className="App">
-      <Board boardWidth={boardWidth} />
+      <Board width={width} />
     </div>
   );
 }
