@@ -15,7 +15,7 @@ export default class Tile extends Component {
       isBomb: this.props.isBomb||false,
       isFlagged: false,
       symbol: null
-    }
+    };
 
   handleClick = () => {
     if (!this.state.isRevealed && !this.state.isFlagged) {
