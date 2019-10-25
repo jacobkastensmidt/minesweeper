@@ -10,12 +10,21 @@ const symbols = {
 };
 
 function Symbol(props) {
-  const {isMine, isFlagged, isRevealed, numberOfAdjacentMines, symbol} = props.tileState;
+  const {isMine, isFlagged, numberOfAdjacentMines} = props.tileState;
+  const isRevealed = props.isRevealed;
   const style = {
     position: 'absolute',
     width: '100%',
     height: '100%'
   };
+
+  let symbol = symbols.blank;
+  if (isRevealed && isMine) {
+    symbol = symbols.mine;
+  } else if (!isRevealed && isFlagged) {
+    symbol = symbols.flag;
+  }
+
   const viewBoxDimensions = "-200 -200 912 912";
   if (symbol && ((isFlagged && !isRevealed) || (isMine && isRevealed))) {
     return <FontAwesomeIcon icon={symbol} style={style} viewBox={viewBoxDimensions}/>;
@@ -34,47 +43,23 @@ export default class Tile extends Component {
     isBlank: this.props.tileData.isBlank,
     isMine: this.props.tileData.isMine,
     isFlagged: false,
-    isRevealed: false,
-    numberOfAdjacentMines: this.props.tileData.numberOfAdjacentMines,
-    symbol: null
+    numberOfAdjacentMines: this.props.tileData.numberOfAdjacentMines
   };
-
-  handleClick = () => {
-    if (!this.state.isRevealed && !this.state.isFlagged) {
-      this.setState(
-        {isRevealed: true},
-        () => {
-          if (this.state.isMine) {
-            this.setState({symbol: symbols.mine});
-          }
-        });
-    }
-  }
     
   handleContextMenu = (e) => {
-      e.preventDefault();
-      this.setState(state => {
-        return {isFlagged: !state.isFlagged}
-      }, () => {
-        if(!this.state.isRevealed) {
-          if(this.state.isFlagged) {
-            this.setState({symbol: symbols.flag});
-          } else if (!this.state.isFlagged) {
-            this.setState({symbol: symbols.blank});
-          }
-        }
-      });
+    e.preventDefault();
+    this.setState(state => {return {isFlagged: !state.isFlagged}});
   }
 
   render() {
-    const {isRevealed} = this.state;
+    const {isRevealed} = this.props.tileData;
     return (
       <div
         className={`Tile${(isRevealed) ? ' depressed' : ''}`}
-        onClick={this.handleClick}
+        onClick={this.props.handleClick}
         onContextMenu={this.handleContextMenu}
       >
-        <Symbol tileState={this.state} />
+        <Symbol isRevealed={isRevealed} tileState={this.state} />
       </div>
     );
   }
