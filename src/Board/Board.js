@@ -10,6 +10,7 @@ import Tile from './Tile';
 import './Board.css';
 
 export default class Board extends Component {
+  static adjacent = [ [-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1] ];
   state = this.generateBoard();
 
   generateBoard() {
@@ -32,7 +33,7 @@ export default class Board extends Component {
 
     // Fill the array with an object denoting isMine as 'true' for the first numberOfMines, and 'false' thereafter
     for (let i = 0; i < tileData.length; i++) {
-      tileData[i] = { numberOfAdjacentMines: 0 }
+      tileData[i] = { numberOfAdjacentMines: 0, isRevealed: false }
       const isMine = (i < numberOfMines);
       tileData[i].isMine = (isMine) ? true : false;
     }
@@ -45,26 +46,32 @@ export default class Board extends Component {
   }
 
   countAdjacentMines(tileData, height, width) {
-    const adjacent = [ [-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1] ];
     tileData.forEach((tile, index) => {
       if (tile.isMine){
-        const row = Math.floor(index / height);
-        const column = index % height;
-        adjacent.forEach(coordinates => {
-          if (this.tileWithinBoard([row, column], coordinates, height, width)) {
-            tileData[(row * height) + (coordinates[0] * height) + column + coordinates[1]].numberOfAdjacentMines++;
+        const {row, column} = this.getTileRowAndColumn(index, height);
+        Board.adjacent.forEach(coordinates => {
+          if (this.tileWithinBoard(row, column, coordinates[0], coordinates[1], height, width)) {
+            tileData[
+              this.getTranslatedTileIndex(
+                row,
+                column,
+                coordinates[0],
+                coordinates[1],
+                height
+              )
+            ].numberOfAdjacentMines++;
           }
         });
       }
     }); 
   }
 
-  tileWithinBoard(current, tileDirection, height, width) {
+  tileWithinBoard(row, column, yTranslation, xTranslation, height, width) {
     if (
-      (current[0] + tileDirection[0] >= 0) &&
-      (current[0] + tileDirection[0] < height) &&
-      (current[1] + tileDirection[1] >= 0) &&
-      (current[1] + tileDirection[1] < width)
+      (row + yTranslation >= 0) &&
+      (row + yTranslation < height) &&
+      (column + xTranslation >= 0) &&
+      (column + xTranslation < width)
     ) {
       return true;
     } else {
@@ -76,7 +83,6 @@ export default class Board extends Component {
     const numberOfTiles = height * width;
     const maxPercentage = .22;
     const minePercentage = maxPercentage - 1 / Math.sqrt(numberOfTiles);
-    console.log(minePercentage);
 		return Math.floor(minePercentage * numberOfTiles);
   }
 
@@ -92,16 +98,60 @@ export default class Board extends Component {
     return width;
   }
 
+  getTileRowAndColumn(index, height) {
+    const row = Math.floor(index / height);
+    const column = index % height;
+    return {
+      row: row,
+      column: column
+    };
+  }
+
+  getTranslatedTileIndex(row, column, yTranslation, xTranslation, height) {
+    return (row * height) + (yTranslation * height) + column + xTranslation;
+  }
+
+  getAdjacentIndexes = (index) => {
+    const height = this.state.height;
+    const {row, column} = this.getTileRowAndColumn(index, height);
+    return Board.adjacent.map((coordinate) => {
+      if(this.tileWithinBoard(row, column, coordinate[0], coordinate[1], height, this.state.width)) {
+        return this.getTranslatedTileIndex(row, column, coordinate[0], coordinate[1], height);
+      }
+    });
+  }
+
+  revealTiles(tileData, index) {
+    const adjacentIndexes = this.getAdjacentIndexes(index);
+    const tile = tileData[index];
+    tile.isRevealed = true;
+    if(!tile.isMine && tile.numberOfAdjacentMines === 0) {
+      adjacentIndexes.forEach((adjacentIndex) => {
+        const {row, column} = this.getTileRowAndColumn(adjacentIndex, this.state.height);
+        if (this.tileWithinBoard(row, column, 0, 0, this.state.height, this.state.width) && !tileData[adjacentIndex].isRevealed) {
+          tileData = this.revealTiles(tileData, adjacentIndex);
+        }
+      });
+    }
+    return tileData;
+  }
+
+  handleTileClick = (index) => {
+    this.setState((state) => {
+      let tileData = this.revealTiles(state.tileData, index);
+      return {tileData: tileData};
+    });
+  }
+
 	render() {
 		const boardGridStyle = {
 			'gridTemplateColumns': `repeat(${this.state.width}, auto)`
 		};
-    console.log(this.state.height + " " + this.state.width + " " + this.state.numberOfFlags);
 		return (
 			<div className="Board">
 				<div className="BoardGrid" style={boardGridStyle}>
 					{this.state.tileData.map((tile, index) => {
-						return <Tile key={index} tileData={tile} />
+						return <Tile key={index} tileData={tile} handleClick={() => this.handleTileClick(index)} />
 					})}
 				</div>
 			</div>
