@@ -25,22 +25,20 @@ function Symbol(props) {
     symbol = symbols.flag;
   }
 
-  const viewBoxDimensions = "-200 -200 912 912";
-  if (symbol && ((isFlagged && !isRevealed) || (isMine && isRevealed))) {
-    return <FontAwesomeIcon icon={symbol} style={style} viewBox={viewBoxDimensions}/>;
-  } else if (!isMine && isRevealed && numberOfAdjacentMines > 0) {
+  if (symbol) {
+    return <FontAwesomeIcon icon={symbol} style={style} viewBox={"-200 -200 912 912"}/>;
+  } else if (isRevealed && numberOfAdjacentMines > 0) {
     return (
       <svg viewBox="-20 -85 100 100" xmlns="http://www.w3.org/2000/svg" style={style}>
         <text fontSize="100">{numberOfAdjacentMines}</text>
       </svg>
-    )
+    );
   }
   return null;
 }
 
 export default class Tile extends Component {
   state = {
-    isBlank: this.props.tileData.isBlank,
     isMine: this.props.tileData.isMine,
     isFlagged: false,
     numberOfAdjacentMines: this.props.tileData.numberOfAdjacentMines
