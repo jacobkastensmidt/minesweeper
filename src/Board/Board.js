@@ -10,9 +10,24 @@ import Tile from './Tile';
 import './Board.css';
 
 export default class Board extends Component {
-  static adjacent = [ [-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1] ];
+  // Define tile translations for checking surrounding tiles.
+  static adjacent = [
+    {x: -1, y: -1},
+    {x: -1, y: 0},
+    {x: -1, y: 1},
+    {x: 0, y: -1},
+    {x: 0, y: 1},
+    {x: 1, y: -1},
+    {x: 1, y: 0},
+    {x: 1, y: 1}
+  ];
   state = this.generateBoard();
 
+  /**
+   * Generate board with height * width number of tiles.
+   * 
+   * @returns {object} Object containing generated board state.
+   */
   generateBoard() {
     const height = this.configureHeight();
     const width = this.configureWidth();
@@ -24,61 +39,61 @@ export default class Board extends Component {
       numberOfFlags:numberOfMines,
       height: height,
       width: width
-    }
+    };
   }
 
-  generateTileData(height, width, numberOfMines) {
+  /**
+   * Set up default tile data with randomized mine locations.
+   * 
+   * @param {number} height
+   * @param {number} width
+   * @param {number} numberOfMines
+   * 
+   * @returns {object} Tile data and number of mines.
+   */
+  generateTileData(height, width, numberOfMines = null) {
     numberOfMines = numberOfMines || this.determineNumberOfMines(height, width);
     let tileData = Array(height * width);
 
     // Fill the array with an object denoting isMine as 'true' for the first numberOfMines, and 'false' thereafter
     for (let i = 0; i < tileData.length; i++) {
       tileData[i] = { numberOfAdjacentMines: 0, isRevealed: false }
-      const isMine = (i < numberOfMines);
-      tileData[i].isMine = (isMine) ? true : false;
+      tileData[i].isMine = (i < numberOfMines) ? true : false;
     }
     // Shuffle the mine locations randomly
     tileData = shuffle(tileData);
     return {
       tileData: tileData,
       numberOfMines: numberOfMines
-    }
+    };
   }
 
+  /**
+   * Determine the number of mines next to a tile.
+   * 
+   * @param {object} tileData Data on all tiles.
+   * @param {number} height
+   * @param {number} width
+   */
   countAdjacentMines(tileData, height, width) {
     tileData.forEach((tile, index) => {
       if (tile.isMine){
-        const {row, column} = this.getTileRowAndColumn(index, height);
-        Board.adjacent.forEach(coordinates => {
-          if (this.tileWithinBoard(row, column, coordinates[0], coordinates[1], height, width)) {
-            tileData[
-              this.getTranslatedTileIndex(
-                row,
-                column,
-                coordinates[0],
-                coordinates[1],
-                height
-              )
-            ].numberOfAdjacentMines++;
+        Board.adjacent.forEach(translation => {
+          const translatedIndex = this.getTranslatedTileIndex(index, translation, height, width)
+          if (translatedIndex) {
+            tileData[translatedIndex].numberOfAdjacentMines++;
           }
         });
       }
     }); 
   }
 
-  tileWithinBoard(row, column, yTranslation, xTranslation, height, width) {
-    if (
-      (row + yTranslation >= 0) &&
-      (row + yTranslation < height) &&
-      (column + xTranslation >= 0) &&
-      (column + xTranslation < width)
-    ) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
+  /**
+   * Determine the number of mines based on a percentile scaline with board size.
+   * 
+   * @param {number} height
+   * @param {number} width
+   */
 	determineNumberOfMines(height, width) {
     const numberOfTiles = height * width;
     const maxPercentage = .22;
@@ -86,18 +101,34 @@ export default class Board extends Component {
 		return Math.floor(minePercentage * numberOfTiles);
   }
 
+  /**
+   * Determine height.  Defaults to width if no height prop found.
+   * 
+   * @returns {number}
+   */
   configureHeight() {
     let {height, width} = this.props;
     height = height || width;
     return height;
   }
 
+  /**
+   * Determine width.  Defaults to width if no width prop found.
+   * 
+   * @returns {number}
+   */
   configureWidth() {
     let {height, width} = this.props;
     width = width || height;
     return width;
   }
 
+  /**
+   * Based on the height and tile array index, determine the row and column location of the tile.
+   * 
+   * @param {number} index
+   * @param {number} height
+   */
   getTileRowAndColumn(index, height) {
     const row = Math.floor(index / height);
     const column = index % height;
@@ -107,28 +138,66 @@ export default class Board extends Component {
     };
   }
 
-  getTranslatedTileIndex(row, column, yTranslation, xTranslation, height) {
-    return (row * height) + (yTranslation * height) + column + xTranslation;
+  /**
+   * Get the new index of a tile after translating it.  If the tile is not in the
+   * grid after the translation, 'false' is returned instead.
+   * 
+   * @param {number} index
+   * @param {object} translation X and y values to translate on the game grid.
+   * @param {number} height
+   * @param {number} width
+   * 
+   * @returns {(number|bool)}
+   */
+  getTranslatedTileIndex(index, translation, height, width) {
+    const {row, column} = this.getTileRowAndColumn(index, height);
+    const newRowLocation = row + translation.y;
+    const newColumnLocation = column + translation.x;
+    if(newRowLocation >= 0 &&
+      newRowLocation < height &&
+      newColumnLocation >= 0 &&
+      newColumnLocation < width
+    ) {
+      return newRowLocation * height + newColumnLocation;
+    }
+    return false;
   }
 
+  /**
+   * Get an array of indexes surrounding a tile.
+   * 
+   * @param {number} index
+   * 
+   * @returns {Array}
+   */
   getAdjacentIndexes = (index) => {
-    const height = this.state.height;
-    const {row, column} = this.getTileRowAndColumn(index, height);
-    return Board.adjacent.map((coordinate) => {
-      if(this.tileWithinBoard(row, column, coordinate[0], coordinate[1], height, this.state.width)) {
-        return this.getTranslatedTileIndex(row, column, coordinate[0], coordinate[1], height);
+    const {height, width} = this.state.height;
+    return Board.adjacent.map((translation) => {
+      const translatedIndex = this.getTranslatedTileIndex(index, translation, height, width);
+      if(translatedIndex) {
+        return translatedIndex;
       }
     });
   }
 
+  /**
+   * Set tiles to revealed recursively.
+   * 
+   * @param {object} tileData
+   * @param {number} index
+   * 
+   * @returns {object} Tile data updated with revealed tiles.
+   */
   revealTiles(tileData, index) {
     const adjacentIndexes = this.getAdjacentIndexes(index);
     const tile = tileData[index];
+    const {height, width} = this.state;
     tile.isRevealed = true;
     if(!tile.isMine && tile.numberOfAdjacentMines === 0) {
       adjacentIndexes.forEach((adjacentIndex) => {
-        const {row, column} = this.getTileRowAndColumn(adjacentIndex, this.state.height);
-        if (this.tileWithinBoard(row, column, 0, 0, this.state.height, this.state.width) && !tileData[adjacentIndex].isRevealed) {
+        if (this.getTranslatedTileIndex(adjacentIndex, {x: 0, y: 0}, height, width) && 
+          !tileData[adjacentIndex].isRevealed
+        ) {
           tileData = this.revealTiles(tileData, adjacentIndex);
         }
       });
@@ -136,6 +205,11 @@ export default class Board extends Component {
     return tileData;
   }
 
+  /**
+   * Update state with revealed tiles based on clicked tile.
+   * 
+   * @param {number} index
+   */
   handleTileClick = (index) => {
     this.setState((state) => {
       let tileData = this.revealTiles(state.tileData, index);
