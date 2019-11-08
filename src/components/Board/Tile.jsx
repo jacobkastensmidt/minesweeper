@@ -17,8 +17,7 @@ const symbols = {
  * @returns {(null|string)} HTML markup for the component.
  */
 function Symbol(props) {
-  const {isMine, isFlagged, numberOfAdjacentMines} = props.tileState;
-  const isRevealed = props.isRevealed;
+  const {isRevealed, isFlagged, isMine, numberOfAdjacentMines} = props;
   const style = {
     position: 'absolute',
     width: '100%',
@@ -33,8 +32,9 @@ function Symbol(props) {
   }
 
   if (symbol) {
-    return <FontAwesomeIcon icon={symbol} style={style} viewBox={"-200 -200 912 912"}/>;
-  } else if (isRevealed && numberOfAdjacentMines > 0) {
+    return <FontAwesomeIcon icon={symbol} style={style} viewBox="-200 -200 912 912"/>;
+  }
+  if (isRevealed && numberOfAdjacentMines > 0) {
     return (
       <svg viewBox="-20 -85 100 100" xmlns="http://www.w3.org/2000/svg" style={style}>
         <text fontSize="100">{numberOfAdjacentMines}</text>
@@ -45,30 +45,29 @@ function Symbol(props) {
 }
 
 export default class Tile extends Component {
-  state = {
-    isMine: this.props.tileData.isMine,
-    isFlagged: false,
-    numberOfAdjacentMines: this.props.tileData.numberOfAdjacentMines
-  };
-
-  /**
-   * Flag tile on right click.
-   */
-  handleContextMenu = (e) => {
-    e.preventDefault();
-    this.setState(state => {return {isFlagged: !state.isFlagged}});
+  constructor(props) {
+    super(props);
+    const {tileData} = this.props;
+    const {isMine, numberOfAdjacentMines} = tileData;
+    this.state = {
+      isMine,
+      numberOfAdjacentMines
+    };
   }
 
   render() {
-    const {isRevealed} = this.props.tileData;
+    const {tileData, handleClick, handleContextMenu} = this.props;
+    const {isRevealed, isFlagged} = tileData;
+    const {isMine, numberOfAdjacentMines} = this.state;
     return (
-      <div
+      <button
         className={`Tile${(isRevealed) ? ' depressed' : ''}`}
-        onClick={this.props.handleClick}
-        onContextMenu={this.handleContextMenu}
+        onClick={handleClick}
+        onContextMenu={handleContextMenu}
+        type="button"
       >
-        <Symbol isRevealed={isRevealed} tileState={this.state} />
-      </div>
+        <Symbol isRevealed={isRevealed} isFlagged={isFlagged} isMine={isMine} numberOfAdjacentMines={numberOfAdjacentMines} />
+      </button>
     );
   }
 }
