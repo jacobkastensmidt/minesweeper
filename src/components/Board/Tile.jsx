@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBomb, faFlag } from '@fortawesome/free-solid-svg-icons'
 import './Tile.css';
@@ -44,30 +44,22 @@ function Symbol(props) {
   return null;
 }
 
-export default class Tile extends Component {
-  constructor(props) {
-    super(props);
-    const {tileData} = this.props;
-    const {isMine, numberOfAdjacentMines} = tileData;
-    this.state = {
-      isMine,
-      numberOfAdjacentMines
-    };
-  }
-
-  render() {
-    const {tileData, handleClick, handleContextMenu} = this.props;
-    const {isRevealed, isFlagged} = tileData;
-    const {isMine, numberOfAdjacentMines} = this.state;
-    return (
-      <button
-        className={`Tile${(isRevealed) ? ' depressed' : ''}`}
-        onClick={handleClick}
-        onContextMenu={handleContextMenu}
-        type="button"
-      >
-        <Symbol isRevealed={isRevealed} isFlagged={isFlagged} isMine={isMine} numberOfAdjacentMines={numberOfAdjacentMines} />
-      </button>
-    );
-  }
+export default function Tile (props) {
+  const {tileData, handleClick, handleContextMenu} = props;
+  const {isRevealed, isFlagged, isMine, numberOfAdjacentMines} = tileData;
+  return (
+    <button
+      className={`Tile${(isRevealed) ? ' depressed' : ''}`}
+      onClick={handleClick}
+      onContextMenu={handleContextMenu}
+      type="button"
+    >
+      <Symbol
+        isRevealed={isRevealed}
+        isFlagged={isFlagged}
+        isMine={isMine}
+        numberOfAdjacentMines={numberOfAdjacentMines}
+      />
+    </button>
+  );
 }

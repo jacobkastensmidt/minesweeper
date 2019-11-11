@@ -23,6 +23,7 @@ export default class Board extends Component {
     super(props);
     this.state = this.generateBoard();
 
+    // Bind functions passed as props
     this.handleTileClick = this.handleTileClick.bind(this);
     this.handleTileContextMenu = this.handleTileContextMenu.bind(this);
   }
@@ -81,7 +82,12 @@ export default class Board extends Component {
     const {tileData, numberOfMines} = generateTileData(height, width, customNumberOfMines);
     countAdjacentMines(tileData, height, width);
 
-    return { tileData, numberOfMines, height, width };
+    return {
+      tileData,
+      numberOfMines,
+      height,
+      width
+    };
   }
 
   /**
@@ -93,7 +99,6 @@ export default class Board extends Component {
    * @returns {object} Tile data updated with revealed tiles.
    */
   revealTiles(tileData, index) {
-    let updatedTileData = tileData;
     const adjacentIndices = this.getAdjacentIndices(index);
     const tile = tileData[index];
     const {height, width} = this.state;
@@ -104,11 +109,20 @@ export default class Board extends Component {
           !tileData[adjacentIndex].isRevealed &&
           !tileData[adjacentIndex].isFlagged
         ) {
-          updatedTileData = this.revealTiles(tileData, adjacentIndex);
+          return this.revealTiles(tileData, adjacentIndex);
         }
+        return tileData
       });
     }
-    return updatedTileData;
+    return tileData;
+  }
+
+  checkForWin() {
+    const {tileData, numberOfMines} = this.state;
+    const numberOfRevealedTiles = tileData.reduce((numberOfTiles, currentTile) => {
+      return currentTile.isRevealed ? numberOfTiles + 1 : numberOfTiles;
+    }, 0);
+    return tileData.length - numberOfRevealedTiles === numberOfMines;
   }
 
   /**
@@ -117,25 +131,37 @@ export default class Board extends Component {
    * @param {number} index
    */
   handleTileClick (tile, index) {
+    const {isGameover, triggerGameover} = this.props;
     return () => {
-      if(!tile.isFlagged) {
-        this.setState(state => {
-          return {
-            tileData: this.revealTiles(state.tileData, index)
-          };
-        });
+      if(!isGameover) {
+        if(!tile.isFlagged) {
+          this.setState(state => {
+            return {
+              tileData: this.revealTiles(state.tileData, index)
+            };
+          }, () => {
+            if(tile.isMine) {
+              triggerGameover(false);
+            } else if(this.checkForWin()) {
+              triggerGameover(true);
+            }
+          });
+        }
       }
     };
   }
 
   handleTileContextMenu(index) {
+    const {isGameover} = this.state;
     return (e) => {
       e.preventDefault();
-      this.setState(state => {
-        return {
-          tileData: flagTile(state.tileData, index)
-        };
-      });
+      if(!isGameover) {
+        this.setState(state => {
+          return {
+            tileData: flagTile(state.tileData, index)
+          };
+        });
+      }
     }
   }
 
