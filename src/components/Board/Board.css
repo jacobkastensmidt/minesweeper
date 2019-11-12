@@ -1,15 +1,14 @@
 .Board {
 	position: relative;
-	width: 70vh;
 }
-	
+
 .Board:before{
 	content: "";
 	display: block;
 	padding-top: 100%;
 }
 
-.BoardGrid {
+.Board-grid {
   display: grid;
   position: absolute;
   top: 0;

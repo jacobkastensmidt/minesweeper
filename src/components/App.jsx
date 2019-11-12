@@ -25,27 +25,30 @@ export default class App extends Component {
   }
 
   render() {
-    const {width, customNumberOfMines, isGameover, isWin} = this.state;
-    let gameOverMessage = null;
-    if (isWin) {
-      gameOverMessage = "You win!";
-    } else {
-      gameOverMessage = "You lose!";
-    }
+    const { width, customNumberOfMines, isGameover, isWin } = this.state;
+    const gameOverMessage = isWin ? "You win!" : "You lose!";
+    const displayGameover = isGameover ? "flex-center" : "hide";
     return (
       <div className="App">
-        <div id="info-bar" className="flex-center">
-          {isGameover &&
-            <span id="game-over-message">{gameOverMessage}</span>
-          }
-        </div>
+        <div id="info-bar">Number of remaining flags: </div>
         <div className="flex-center">
-          <Board
-            width={width}
-            customNumberOfMines={customNumberOfMines}
-            triggerGameover={this.triggerGameover}
-            isGameover={isGameover}
-          />
+          <section id="gameboard">
+            <div id="board-overlay" className={displayGameover}>
+              <div id="gameover-prompt">
+                <div id="game-over-message">{gameOverMessage}</div>
+                <div className="button-group">
+                  <button type="button">Play again?</button>
+                  <button type="button">Options</button>
+                </div>
+              </div>
+            </div>
+            <Board
+              width={width}
+              customNumberOfMines={customNumberOfMines}
+              triggerGameover={this.triggerGameover}
+              isGameover={isGameover}
+            />
+          </section>
         </div>
       </div>
     );

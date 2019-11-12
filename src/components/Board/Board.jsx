@@ -30,9 +30,9 @@ export default class Board extends Component {
 
   /**
    * Get an array of indices surrounding a tile.
-   * 
+   *
    * @param {number} index
-   * 
+   *
    * @returns {Array}
    */
   getAdjacentIndices(index) {
@@ -48,7 +48,7 @@ export default class Board extends Component {
 
   /**
    * Determine height.  Defaults to width if no height prop found.
-   * 
+   *
    * @returns {number}
    */
   configureHeight() {
@@ -60,7 +60,7 @@ export default class Board extends Component {
 
   /**
    * Determine width.  Defaults to width if no width prop found.
-   * 
+   *
    * @returns {number}
    */
   configureWidth() {
@@ -72,7 +72,7 @@ export default class Board extends Component {
 
   /**
    * Generate board with height * width number of tiles.
-   * 
+   *
    * @returns {object} Object containing generated board state.
    */
   generateBoard() {
@@ -92,10 +92,10 @@ export default class Board extends Component {
 
   /**
    * Set tiles to revealed recursively.
-   * 
+   *
    * @param {object} tileData
    * @param {number} index
-   * 
+   *
    * @returns {object} Tile data updated with revealed tiles.
    */
   revealTiles(tileData, index) {
@@ -127,18 +127,17 @@ export default class Board extends Component {
 
   /**
    * Update state with revealed tiles based on clicked tile.
-   * 
+   *
    * @param {number} index
    */
   handleTileClick(tile, index) {
     const { isGameover, triggerGameover } = this.props;
+    const { tileData } = this.state;
     return () => {
       if (!isGameover) {
         if (!tile.isFlagged) {
-          this.setState(state => {
-            return {
-              tileData: this.revealTiles(state.tileData, index)
-            };
+          this.setState({
+            tileData: this.revealTiles(tileData, index)
           }, () => {
             if (tile.isMine) {
               triggerGameover(false);
@@ -152,14 +151,12 @@ export default class Board extends Component {
   }
 
   handleTileContextMenu(index) {
-    const { isGameover } = this.state;
+    const { isGameover, tileData } = this.state;
     return (e) => {
       e.preventDefault();
       if (!isGameover) {
-        this.setState(state => {
-          return {
-            tileData: flagTile(state.tileData, index)
-          };
+        this.setState({
+          tileData: flagTile(tileData, index)
         });
       }
     }
@@ -172,7 +169,7 @@ export default class Board extends Component {
     };
     return (
       <div className="Board">
-        <div className="BoardGrid" style={boardGridStyle}>
+        <div className="Board-grid" style={boardGridStyle}>
           {tileData.map((tile, index) => {
             return <Tile
               key={tile.id}
