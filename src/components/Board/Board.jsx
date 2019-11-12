@@ -36,10 +36,10 @@ export default class Board extends Component {
    * @returns {Array}
    */
   getAdjacentIndices(index) {
-    const {height, width} = this.state;
+    const { height, width } = this.state;
     return adjacent.map((translation) => {
       const translatedIndex = getTranslatedTileIndex(index, translation, height, width);
-      if(translatedIndex !== false) {
+      if (translatedIndex !== false) {
         return translatedIndex;
       }
       return null;
@@ -52,8 +52,8 @@ export default class Board extends Component {
    * @returns {number}
    */
   configureHeight() {
-    const {width} = this.props;
-    let {height} = this.props;
+    const { width } = this.props;
+    let { height } = this.props;
     height = height || width;
     return height;
   }
@@ -64,8 +64,8 @@ export default class Board extends Component {
    * @returns {number}
    */
   configureWidth() {
-    const {height} = this.props;
-    let {width} = this.props;
+    const { height } = this.props;
+    let { width } = this.props;
     width = width || height;
     return width;
   }
@@ -79,7 +79,7 @@ export default class Board extends Component {
     const height = this.configureHeight();
     const width = this.configureWidth();
     const { customNumberOfMines } = this.props;
-    const {tileData, numberOfMines} = generateTileData(height, width, customNumberOfMines);
+    const { tileData, numberOfMines } = generateTileData(height, width, customNumberOfMines);
     countAdjacentMines(tileData, height, width);
 
     return {
@@ -101,11 +101,11 @@ export default class Board extends Component {
   revealTiles(tileData, index) {
     const adjacentIndices = this.getAdjacentIndices(index);
     const tile = tileData[index];
-    const {height, width} = this.state;
+    const { height, width } = this.state;
     tile.isRevealed = true;
-    if(!tile.isMine && tile.numberOfAdjacentMines === 0) {
+    if (!tile.isMine && tile.numberOfAdjacentMines === 0) {
       adjacentIndices.forEach((adjacentIndex) => {
-        if (getTranslatedTileIndex(adjacentIndex, {x: 0, y: 0}, height, width) !== false && 
+        if (getTranslatedTileIndex(adjacentIndex, { x: 0, y: 0 }, height, width) !== false &&
           !tileData[adjacentIndex].isRevealed &&
           !tileData[adjacentIndex].isFlagged
         ) {
@@ -118,7 +118,7 @@ export default class Board extends Component {
   }
 
   checkForWin() {
-    const {tileData, numberOfMines} = this.state;
+    const { tileData, numberOfMines } = this.state;
     const numberOfRevealedTiles = tileData.reduce((numberOfTiles, currentTile) => {
       return currentTile.isRevealed ? numberOfTiles + 1 : numberOfTiles;
     }, 0);
@@ -130,19 +130,19 @@ export default class Board extends Component {
    * 
    * @param {number} index
    */
-  handleTileClick (tile, index) {
-    const {isGameover, triggerGameover} = this.props;
+  handleTileClick(tile, index) {
+    const { isGameover, triggerGameover } = this.props;
     return () => {
-      if(!isGameover) {
-        if(!tile.isFlagged) {
+      if (!isGameover) {
+        if (!tile.isFlagged) {
           this.setState(state => {
             return {
               tileData: this.revealTiles(state.tileData, index)
             };
           }, () => {
-            if(tile.isMine) {
+            if (tile.isMine) {
               triggerGameover(false);
-            } else if(this.checkForWin()) {
+            } else if (this.checkForWin()) {
               triggerGameover(true);
             }
           });
@@ -152,10 +152,10 @@ export default class Board extends Component {
   }
 
   handleTileContextMenu(index) {
-    const {isGameover} = this.state;
+    const { isGameover } = this.state;
     return (e) => {
       e.preventDefault();
-      if(!isGameover) {
+      if (!isGameover) {
         this.setState(state => {
           return {
             tileData: flagTile(state.tileData, index)
@@ -165,24 +165,24 @@ export default class Board extends Component {
     }
   }
 
-	render() {
-    const {tileData, width} = this.state;
-		const boardGridStyle = {
-			'gridTemplateColumns': `repeat(${width}, auto)`
-		};
-		return (
-			<div className="Board">
-				<div className="BoardGrid" style={boardGridStyle}>
-					{tileData.map((tile, index) => {
-						return <Tile
-            key={tile.id}
-            tileData={tile}
-            handleClick={this.handleTileClick(tile, index)}
-            handleContextMenu={this.handleTileContextMenu(index)}
-          />
-					})}
-				</div>
-			</div>
-		)
-	}
+  render() {
+    const { tileData, width } = this.state;
+    const boardGridStyle = {
+      'gridTemplateColumns': `repeat(${width}, auto)`
+    };
+    return (
+      <div className="Board">
+        <div className="BoardGrid" style={boardGridStyle}>
+          {tileData.map((tile, index) => {
+            return <Tile
+              key={tile.id}
+              tileData={tile}
+              handleClick={this.handleTileClick(tile, index)}
+              handleContextMenu={this.handleTileContextMenu(index)}
+            />
+          })}
+        </div>
+      </div>
+    )
+  }
 }
