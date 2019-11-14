@@ -17,14 +17,14 @@ export default class App extends Component {
     this.triggerGameover = this.triggerGameover.bind(this);
   }
 
-  triggerGameover(victory) {
+  triggerGameover = (victory) => {
     this.setState({
       isGameover: true,
       isWin: victory
     });
   }
 
-  render() {
+  render = () => {
     const { width, customNumberOfMines, isGameover, isWin } = this.state;
     const gameOverMessage = isWin ? "You win!" : "You lose!";
     const displayGameover = isGameover ? "flex-center" : "hide";
