@@ -1,0 +1,8 @@
+#Board {
+  position: relative;
+  max-width: 80vw;
+}
+
+#Board-grid {
+  display: grid;
+}

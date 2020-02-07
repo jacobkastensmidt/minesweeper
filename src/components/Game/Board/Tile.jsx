@@ -11,13 +11,13 @@ const symbols = {
 
 /**
  * Renders a number, bomb symbol, or flag symbol.
- * 
+ *
  * @param {object} props
- * 
+ *
  * @returns {(null|string)} HTML markup for the component.
  */
 function Symbol(props) {
-  const {isRevealed, isFlagged, isMine, numberOfAdjacentMines} = props;
+  const { isRevealed, isFlagged, isMine, numberOfAdjacentMines } = props;
   const style = {
     position: 'absolute',
     width: '100%',
@@ -32,11 +32,11 @@ function Symbol(props) {
   }
 
   if (symbol) {
-    return <FontAwesomeIcon icon={symbol} style={style} viewBox="-200 -200 912 912"/>;
+    return <FontAwesomeIcon icon={symbol} style={style} viewBox="-200 -200 912 912" />;
   }
   if (isRevealed && numberOfAdjacentMines > 0) {
     return (
-      <svg viewBox="-20 -85 100 100" xmlns="http://www.w3.org/2000/svg" style={style}>
+      <svg viewBox="-20 -85 95 100" xmlns="http://www.w3.org/2000/svg" style={style}>
         <text fontSize="100">{numberOfAdjacentMines}</text>
       </svg>
     );
@@ -44,9 +44,9 @@ function Symbol(props) {
   return null;
 }
 
-export default function Tile (props) {
-  const {tileData, handleClick, handleContextMenu} = props;
-  const {isRevealed, isFlagged, isMine, numberOfAdjacentMines} = tileData;
+export default function Tile(props) {
+  const { tileData, handleClick, handleContextMenu } = props;
+  const { isRevealed, isFlagged, isMine, numberOfAdjacentMines } = tileData;
   return (
     <button
       className={`Tile${(isRevealed) ? ' depressed' : ''}`}

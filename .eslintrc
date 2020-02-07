@@ -11,6 +11,12 @@
     "prettier"
   ],
   "rules": {
-    "react/prop-types": 0
+    "react/prop-types": false,
+    "react/jsx-props-no-spreading": [
+      true,
+      {
+        "exceptions": "Modal"
+      }
+    ]
   }
 }

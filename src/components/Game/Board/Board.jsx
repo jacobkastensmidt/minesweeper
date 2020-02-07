@@ -4,11 +4,15 @@ import React, { Component } from 'react';
 // Functions
 import {
   adjacent,
+  determineNumberOfMines,
   generateTileData,
   countAdjacentMines,
   getTranslatedTileIndex,
-  flagTile
-} from '../../helpers/Board';
+  flagTile,
+  swapWithBlank,
+  clearAdjacentMineCounts,
+  matchAspectRatio
+} from '../../../helpers/Board';
 
 // Components
 import Tile from './Tile';
@@ -43,43 +47,6 @@ export default class Board extends Component {
   };
 
   /**
-   * Update state with revealed tiles based on clicked tile.
-   *
-   * @param {number} index
-   */
-  handleTileClick = (tile, index) => {
-    const { isGameover, triggerGameover } = this.props;
-    const { tileData } = this.state;
-    return () => {
-      if (!isGameover) {
-        if (!tile.isFlagged) {
-          this.setState({
-            tileData: this.revealTiles(tileData, index)
-          }, () => {
-            if (tile.isMine) {
-              triggerGameover(false);
-            } else if (this.checkForWin()) {
-              triggerGameover(true);
-            }
-          });
-        }
-      }
-    };
-  }
-
-  handleTileContextMenu = (index) => {
-    const { isGameover, tileData } = this.state;
-    return (e) => {
-      e.preventDefault();
-      if (!isGameover) {
-        this.setState({
-          tileData: flagTile(tileData, index)
-        });
-      }
-    }
-  }
-
-  /**
    * Determine height.  Defaults to width if no height prop found.
    *
    * @returns {number}
@@ -109,17 +76,22 @@ export default class Board extends Component {
    * @returns {object} Object containing generated board state.
    */
   generateBoard = () => {
-    const height = this.configureHeight();
-    const width = this.configureWidth();
-    const { customNumberOfMines } = this.props;
-    const { tileData, numberOfMines } = generateTileData(height, width, customNumberOfMines);
+    let height = this.configureHeight();
+    let width = this.configureWidth();
+    const adjustedAspect = matchAspectRatio(height, width);
+    height = adjustedAspect.height;
+    width = adjustedAspect.width;
+    let { numberOfMines } = this.props;
+    numberOfMines = numberOfMines || determineNumberOfMines(height, width);
+    const tileData = generateTileData(height, width, numberOfMines);
     countAdjacentMines(tileData, height, width);
 
     return {
       tileData,
       numberOfMines,
       height,
-      width
+      width,
+      firstClick: true
     };
   }
 
@@ -150,6 +122,11 @@ export default class Board extends Component {
     return tileData;
   }
 
+  /**
+   * Check for a win by checking if all non-bomb tiles have been revealed.
+   *
+   * @returns {boolean} If a win has been achieved
+   */
   checkForWin = () => {
     const { tileData, numberOfMines } = this.state;
     const numberOfRevealedTiles = tileData.reduce((numberOfTiles, currentTile) => {
@@ -158,14 +135,74 @@ export default class Board extends Component {
     return tileData.length - numberOfRevealedTiles === numberOfMines;
   }
 
+  /**
+   * Return a function that updates state with revealed tiles based on clicked tile.
+   *
+   * @param {number} index
+   */
+  handleTileClick = (tile, index) => {
+    const { isGameover, triggerGameover } = this.props;
+    const { tileData, firstClick } = this.state;
+    return () => {
+      if (!isGameover) {
+        if (!tile.isFlagged) {
+          if (firstClick) {
+            if (tile.isMine) {
+              const { height, width } = this.state;
+              let { updatedTile, updatedTileData } = swapWithBlank(index, tileData);
+              updatedTileData = clearAdjacentMineCounts(updatedTileData);
+              countAdjacentMines(updatedTileData, height, width);
+              this.setState({
+                firstClick: false,
+                tileData: updatedTileData
+              }, () => this.handleTileClick(updatedTile, index)());
+            } else {
+              this.setState({
+                firstClick: false
+              }, () => this.handleTileClick(tile, index)());
+            }
+            return;
+          }
+          this.setState({
+            tileData: this.revealTiles(tileData, index)
+          }, () => {
+            if (tile.isMine) {
+              triggerGameover(false);
+            } else if (this.checkForWin()) {
+              triggerGameover(true);
+            }
+          });
+        }
+      }
+    };
+  }
+
+  /**
+   * Return a function that updates the state for a tile to be flagged
+   *
+   * @param {number} index
+   */
+  handleTileContextMenu = (index) => {
+    const { isGameover, tileData } = this.state;
+    return (e) => {
+      e.preventDefault();
+      if (!isGameover) {
+        this.setState({
+          tileData: flagTile(tileData, index)
+        });
+      }
+    }
+  }
+
   render = () => {
-    const { tileData, width } = this.state;
+    const { tileData, width, height } = this.state;
     const boardGridStyle = {
       'gridTemplateColumns': `repeat(${width}, auto)`
     };
+    const boardWidth = 75 * (width / height);
     return (
-      <div className="Board">
-        <div className="Board-grid" style={boardGridStyle}>
+      <div id="Board" style={{ width: `${boardWidth}vh` }} >
+        <div id="Board-grid" style={boardGridStyle}>
           {tileData.map((tile, index) => {
             return <Tile
               key={tile.id}
