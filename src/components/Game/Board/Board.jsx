@@ -199,6 +199,7 @@ export default class Board extends Component {
     const boardGridStyle = {
       'gridTemplateColumns': `repeat(${width}, auto)`
     };
+    // Determine board width.  Needed as padding is based on screen width.
     const boardWidth = 75 * (width / height);
     return (
       <div id="Board" style={{ width: `${boardWidth}vh` }} >
